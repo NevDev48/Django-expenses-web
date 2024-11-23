@@ -6,10 +6,13 @@ name = "pypi"
 [packages]
 django = "*"
 psycopg2 = "*"
-python-dotenv = "*"
 django-heroku = "*"
 gunicorn = "*"
 waitress = "*"
+validate-email = "*"
+email-validator = "*"
+validate-email-address = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
