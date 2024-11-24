@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -6,9 +6,13 @@ from django.contrib.auth.models import User
 from validate_email_address import validate_email
 from django.contrib import messages
 from django.core.mail import EmailMessage
-
+from django.contrib import auth
 
 # Create your views here.
+
+class ExpensesView(View):
+    def get(self, request):
+        return render(request, 'base_auth.html')
 
 class EmailValidationView(View):
     def post(self, request):
@@ -59,15 +63,6 @@ class RegistrationView(View):
                 user.set_password(password)
                 user.is_active = False
                 user.save()
-                email_subject = 'Activate your account'
-                email_body = 'Test body'
-                email = EmailMessage(
-                    email_subject,
-                    email_body,
-                    "noreply@semycolon.com",
-                    [email],
-                )
-                email.send(fail_silently=False)
                 messages.success(request, 'Account successfully created')
                 return render(request, 'authentication/register.html')
             
@@ -99,3 +94,30 @@ class UsernameValidationView(View):
                 {'valid': False, 'error': 'Invalid JSON data.'},
                 status=400
             )
+
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'authentication/login.html')
+    
+    def post(self, request):
+        username = request.POST['username']
+        password = request.POST['password']
+
+        if username and password:
+            user = auth.authenticate(username=username, password=password)
+            print("User:", user)  # Debugging: Periksa apakah user ditemukan
+
+            if user:
+                if user.is_active:
+                    auth.login(request, user)
+                    messages.success(request, 'Welcome, ' + user.username + ' you are now logged in')
+                    print("Login successful")  # Debugging: Periksa apakah login berhasil
+                    return redirect('expenses')
+                else:
+                    messages.error(request, 'Account is not active, please check your email')
+            else:
+                messages.error(request, 'Invalid credentials, try again')
+        else:
+            messages.error(request, 'Please fill all fields')
+
+        return render(request, 'authentication/login.html')
